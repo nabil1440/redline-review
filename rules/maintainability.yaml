@@ -1,0 +1,42 @@
+category: maintainability
+severity_context: >
+  Code should be easy to modify safely under pressure. Focus on patterns that create
+  friction for future changes.
+
+rules:
+  - id: poor_naming
+    severity: medium
+    detect: poor naming that obscures intent at the variable, function, or class level
+    examples:
+      - |
+        let x = getD()
+        function proc(v) {}
+
+  - id: large_functions
+    severity: medium
+    detect: large functions or methods that should be decomposed
+    examples:
+      - |
+        A 200-line function handling validation, DB writes, and notifications
+
+  - id: implicit_mutations
+    severity: medium
+    detect: implicit mutations of shared state or parameters
+    examples:
+      - |
+        function process(order) { order.status = 'done' }
+
+  - id: inconsistent_conventions
+    severity: low
+    detect: inconsistent naming, formatting, or structural conventions
+    examples:
+      - |
+        getUserById, fetchOrder, loadProduct in the same codebase
+
+  - id: future_change_friction
+    severity: medium
+    detect: patterns that create friction for future changes
+    examples:
+      - |
+        Magic numbers without named constants
+        Hardcoded URLs or config values inline

@@ -1,0 +1,62 @@
+category: concurrency_consistency
+severity_context: >
+  Prioritize concurrency and consistency issues that can create corrupted state,
+  duplicate execution, financial inconsistencies, or distributed coordination failures.
+  Review concurrent and distributed flows assuming retries, duplication, delays,
+  and parallel execution.
+
+rules:
+  - id: race_condition
+    severity: critical
+    detect: race condition opportunities from unguarded read-modify-write patterns
+    examples:
+      - |
+        read balance
+        update balance
+        save balance
+
+  - id: missing_transaction_boundaries
+    severity: critical
+    detect: multi-step operations missing transaction boundaries
+    examples:
+      - |
+        createOrder()
+        chargeCard()
+        updateInventory()
+
+  - id: non_idempotent_retry
+    severity: critical
+    detect: non-idempotent operations in retry flows
+    examples:
+      - |
+        retry payment()
+
+  - id: missing_distributed_lock
+    severity: high
+    detect: scenarios requiring distributed locks that have none
+    examples:
+      - |
+        Multiple workers processing the same job without coordination
+
+  - id: shared_mutable_state
+    severity: high
+    detect: shared mutable state accessed without synchronization
+    examples:
+      - |
+        globalCache.value += 1
+
+  - id: eventual_consistency_hazard
+    severity: high
+    detect: code that assumes read-after-write consistency on eventually consistent stores
+    examples:
+      - |
+        write database
+        immediately read replica
+
+  - id: unsafe_async_ordering
+    severity: high
+    detect: unsafe assumptions about async operation ordering
+    examples:
+      - |
+        sendEmail()
+        assume user saved

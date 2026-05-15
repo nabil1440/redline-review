@@ -1,0 +1,49 @@
+category: algorithmic_performance
+severity_context: >
+  Estimate complexity mentally during review. Watch for O(n²) growth patterns and
+  unnecessary memory allocations in hot paths.
+
+rules:
+  - id: nested_loops
+    severity: high
+    detect: nested loops over collections that produce O(n²) or worse complexity
+    examples:
+      - |
+        foreach users as user:
+            foreach roles as role:
+                check(user, role)
+
+  - id: brute_force_solution
+    severity: high
+    detect: brute-force solutions where a more efficient algorithm exists
+    examples:
+      - |
+        Linear scan to find an item that could use a hash map or index
+
+  - id: repeated_scans
+    severity: medium
+    detect: repeated scans or computations over the same data
+    examples:
+      - |
+        array.filter(...) called three times in the same function
+
+  - id: bad_time_complexity
+    severity: high
+    detect: algorithms with unnecessarily bad time complexity
+    examples:
+      - |
+        Sorting on every iteration instead of sorting once
+
+  - id: bad_memory_complexity
+    severity: medium
+    detect: algorithms with unnecessarily bad memory complexity
+    examples:
+      - |
+        Building a full copy of a large dataset to extract a single field
+
+  - id: excessive_allocations
+    severity: medium
+    detect: excessive object or array allocations in tight loops
+    examples:
+      - |
+        new Array() or {} construction inside a hot loop

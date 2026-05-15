@@ -1,0 +1,58 @@
+category: risk_patterns
+severity_context: >
+  Review systems assuming future misuse, scaling pressure, operator mistakes, and
+  evolving complexity. Flag anything that could become a silent footgun.
+
+rules:
+  - id: architectural_landmine
+    severity: high
+    detect: small helpers or utilities that have become implicit dependencies of many critical flows
+    examples:
+      - |
+        formatCurrency() now called by billing, invoicing, reporting, and emails
+
+  - id: operational_footgun
+    severity: high
+    detect: dangerous operations callable without safeguards or confirmation
+    examples:
+      - |
+        deleteAllUsers() with no confirmation or dry-run mode
+
+  - id: hidden_blast_radius
+    severity: high
+    detect: shared utilities or functions with hidden blast radius across critical domains
+    examples:
+      - |
+        normalizeUser() used by auth, billing, and orders without isolation
+
+  - id: sharp_api_edges
+    severity: medium
+    detect: API or function signatures that accept unsafe or nullable combinations
+    examples:
+      - |
+        function process(user, config = null, override = false)
+
+  - id: dangerous_defaults
+    severity: critical
+    detect: dangerous default values that could cause production issues
+    examples:
+      - |
+        isProduction = false
+        skipAuth = true
+        dryRun = false
+
+  - id: fragile_assumptions
+    severity: high
+    detect: fragile assumptions about system state that will break under scale or concurrency
+    examples:
+      - |
+        assume event ordering
+        assume single worker
+        assume in-memory cache is current
+
+  - id: single_point_of_failure
+    severity: high
+    detect: single points of failure in critical orchestration flows
+    examples:
+      - |
+        One service handles all payment orchestration with no fallback

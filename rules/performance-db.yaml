@@ -1,0 +1,44 @@
+category: database_performance
+severity_context: >
+  Prioritize database access patterns that can cause production degradation, scaling
+  bottlenecks, or infrastructure overload. Always review ORM-heavy code with scale
+  assumptions in mind.
+
+rules:
+  - id: n_plus_one_queries
+    severity: high
+    detect: N+1 query patterns in hot paths
+    examples:
+      - |
+        foreach ($orders as $order) {
+            $order->user->name;
+        }
+
+  - id: unbounded_queries
+    severity: high
+    detect: unbounded queries without pagination or limits
+    examples:
+      - |
+        User::all()
+        SELECT * FROM orders
+
+  - id: overfetching
+    severity: medium
+    detect: overfetching by selecting all columns when only a subset is needed
+    examples:
+      - |
+        SELECT * FROM users WHERE id = 1
+
+  - id: missing_pagination
+    severity: high
+    detect: missing pagination or chunking on large result sets
+    examples:
+      - |
+        $users = User::where('active', true)->get()
+
+  - id: repeated_relationship_loading
+    severity: medium
+    detect: repeated relationship loading that should use eager loading
+    examples:
+      - |
+        $post->author inside a loop without ->with('author')

@@ -1,0 +1,108 @@
+category: correctness_safety
+severity_context: >
+  Prioritize correctness issues that can cause silent failures, corrupted state,
+  unpredictable behavior, or production instability.
+
+rules:
+  - id: swallowed_exceptions
+    severity: high
+    detect: swallowed or silently caught exceptions
+    examples:
+      - |
+        try:
+            riskyOperation()
+        catch:
+            pass
+
+  - id: hidden_side_effects
+    severity: high
+    detect: functions with hidden side effects not implied by their name or signature
+    examples:
+      - |
+        calculateTotal()
+            -> updates database
+
+  - id: ambiguous_failure_states
+    severity: critical
+    detect: ambiguous or silent failure states returned as null or empty
+    examples:
+      - |
+        return null
+
+  - id: unhandled_custom_exceptions
+    severity: high
+    detect: custom exceptions raised but never caught or documented
+    examples:
+      - |
+        raise PaymentError
+
+  - id: unreachable_branches
+    severity: medium
+    detect: unreachable code after return, throw, or break statements
+    examples:
+      - |
+        return result
+        log('done')
+
+  - id: dead_code
+    severity: medium
+    detect: dead code, unused variables, or unused helper functions
+    examples:
+      - |
+        unusedHelper()
+        unusedVariable
+
+  - id: stale_abstractions
+    severity: medium
+    detect: stale or legacy abstractions still in active code paths
+    examples:
+      - |
+        LegacyUserAdapter
+        OldPaymentService
+
+  - id: vague_error_messages
+    severity: medium
+    detect: vague or non-actionable error messages
+    examples:
+      - |
+        "Something went wrong"
+        "Operation failed"
+
+  - id: missing_operational_context_in_errors
+    severity: medium
+    detect: error messages missing operational context needed for diagnosis
+    examples:
+      - |
+        "Failed to process request"
+
+  - id: inconsistent_error_quality
+    severity: low
+    detect: inconsistent error message quality across the codebase
+    examples:
+      - |
+        "Invalid input"
+        vs
+        "Email format is invalid"
+
+  - id: leaked_implementation_details_in_errors
+    severity: high
+    detect: leaked internal implementation details exposed in error messages
+    examples:
+      - |
+        SQLSTATE[23505]
+        NullReferenceException at line 842
+
+  - id: user_hostile_error_wording
+    severity: medium
+    detect: user-hostile or unhelpful error wording
+    examples:
+      - |
+        "Bad request"
+        "Invalid"
+
+  - id: missing_remediation_guidance
+    severity: medium
+    detect: recoverable errors missing remediation guidance for the user
+    examples:
+      - |
+        "Upload failed"

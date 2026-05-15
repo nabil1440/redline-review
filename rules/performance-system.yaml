@@ -1,0 +1,37 @@
+category: distributed_system_performance
+severity_context: >
+  Prioritize distributed communication patterns that increase latency, reduce throughput,
+  or amplify cascading failures. Latency compounds across distributed systems.
+
+rules:
+  - id: synchronous_waterfall
+    severity: high
+    detect: synchronous request waterfalls where parallel execution is possible
+    examples:
+      - |
+        const user = await getUser(id)
+        const orders = await getOrders(id)
+        const billing = await getBilling(id)
+
+  - id: serialized_io_bottleneck
+    severity: high
+    detect: serialized I/O operations that could be parallelized
+    examples:
+      - |
+        await sendEmail()
+        await sendSMS()
+        await updateAnalytics()
+
+  - id: excessive_network_roundtrips
+    severity: high
+    detect: excessive network roundtrips that could be batched
+    examples:
+      - |
+        Fetching user, permissions, and settings as three separate API calls
+
+  - id: missing_redis_pipelining
+    severity: medium
+    detect: missing Redis pipelining or batching opportunities
+    examples:
+      - |
+        redis.get() called in a loop instead of mget or pipeline

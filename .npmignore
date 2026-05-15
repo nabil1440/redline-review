@@ -1,0 +1,7 @@
+src/
+tsconfig.json
+.gitignore
+GOAL.md
+PLAN.md
+ai_code_review_skill_heuristics.md
+*.map
