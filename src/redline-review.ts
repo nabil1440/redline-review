@@ -5,6 +5,7 @@ import * as path from 'path';
 import * as yaml from 'js-yaml';
 import { execSync } from 'child_process';
 import { buildReviewContext } from './build-context';
+import { detectRelevantDomains } from './detect-domains';
 
 interface Rule {
   id: string;
@@ -111,23 +112,31 @@ function main(): void {
   const rulesDir = path.join(__dirname, '..', 'rules');
   const promptsDir = path.join(__dirname, '..', 'prompts');
 
-  const selectedFiles = (stack || reviewType)
-    ? buildReviewContext({ stack, reviewType })
-    : undefined;
+  const diff = getGitDiff();
 
-  if (selectedFiles && selectedFiles.length === 0) {
-    process.stderr.write('Warning: no matching rules for the given --stack/--type. Falling back to all rules.\n');
+  let selectedFiles: string[] | undefined;
+  let contextSource: string;
+
+  if (reviewType || stack) {
+    selectedFiles = buildReviewContext({ stack, reviewType });
+    if (selectedFiles.length === 0) {
+      process.stderr.write('Warning: no matching rules for the given --stack/--type. Falling back to all rules.\n');
+      selectedFiles = undefined;
+    }
+    contextSource = 'explicit';
+  } else {
+    selectedFiles = detectRelevantDomains(diff);
+    contextSource = 'auto-detected';
   }
 
   const ruleFiles = loadRules(rulesDir, selectedFiles?.length ? selectedFiles : undefined);
-  const diff = getGitDiff();
   const promptPath = resolvePromptPath(promptVariant, promptsDir);
   const promptTemplate = fs.readFileSync(promptPath, 'utf8');
   const rulesText = formatRulesForPrompt(ruleFiles);
   const finalPrompt = buildPrompt(rulesText, diff, promptTemplate);
 
   if (selectedFiles?.length) {
-    process.stderr.write(`Context: ${selectedFiles.join(', ')}\n`);
+    process.stderr.write(`Domains (${contextSource}): ${selectedFiles.join(', ')}\n`);
   }
 
   process.stdout.write(finalPrompt + '\n');
