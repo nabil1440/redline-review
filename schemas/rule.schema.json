@@ -1,0 +1,52 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "RedlineReviewRuleFile",
+  "type": "object",
+  "required": ["category", "rules"],
+  "properties": {
+    "category": {
+      "type": "string",
+      "description": "Snake-case category identifier"
+    },
+    "severity_context": {
+      "type": "string",
+      "description": "Guidance for how the LLM should prioritize severity within this category"
+    },
+    "rules": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Rule"
+      }
+    }
+  },
+  "definitions": {
+    "Rule": {
+      "type": "object",
+      "required": ["id", "severity", "detect"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Snake-case unique identifier for the rule"
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["critical", "high", "medium", "low"]
+        },
+        "detect": {
+          "type": "string",
+          "description": "Human-readable description of what to detect"
+        },
+        "examples": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Code examples demonstrating the anti-pattern"
+        },
+        "keywords": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Keywords used for auto domain detection from diffs"
+        }
+      }
+    }
+  }
+}

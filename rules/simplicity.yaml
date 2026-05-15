@@ -1,0 +1,85 @@
+category: simplicity_clarity
+severity_context: >
+  Keep implementations cognitively cheap. Optimize for readability and intent clarity.
+
+rules:
+  - id: redundant_checking
+    severity: medium
+    detect: redundant null/existence checking
+    examples:
+      - |
+        if x exists:
+            if x is not null:
+                process(x)
+
+  - id: redundant_normalization
+    severity: low
+    detect: redundant normalization or transformation steps
+    examples:
+      - |
+        trim(lowercase(trim(value)))
+
+  - id: redundant_type_casting
+    severity: low
+    detect: redundant type casting or conversion
+    examples:
+      - |
+        toInt(parseInt(value))
+
+  - id: verbose_defensive_programming
+    severity: medium
+    detect: overly verbose defensive guard chains
+    examples:
+      - |
+        if array exists:
+            if length > 0:
+                if first item exists:
+
+  - id: nested_conditionals
+    severity: medium
+    detect: deeply nested if/else blocks that should be flattened or extracted
+    examples:
+      - |
+        if a:
+            if b:
+                if c:
+                    execute()
+
+  - id: chained_ternaries
+    severity: medium
+    detect: chained ternaries beyond simple cases
+    examples:
+      - |
+        x = a ? b : c ? d : e ? f : g
+
+  - id: large_conditional_chains
+    severity: medium
+    detect: large if/else-if chains that should use switch or a lookup table
+    examples:
+      - |
+        if type == 'A'
+        else if type == 'B'
+        else if type == 'C'
+
+  - id: complex_inline_boolean
+    severity: medium
+    detect: overly complex inline boolean conditions
+    examples:
+      - |
+        if a && b && !c && (d || e) && f:
+
+  - id: unclear_naming
+    severity: medium
+    detect: unclear or non-intent-revealing naming for functions, variables, or classes
+    examples:
+      - |
+        processData2()
+        doThing()
+        handleStuff()
+
+  - id: accidental_complexity
+    severity: high
+    detect: accidental complexity through unnecessary abstraction layers
+    examples:
+      - |
+        FactoryManagerResolverBuilder

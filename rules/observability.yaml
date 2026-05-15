@@ -1,0 +1,59 @@
+category: observability
+severity_context: >
+  Prioritize observability gaps that make production incidents difficult to diagnose,
+  trace, or recover from. Systems should be diagnosable under production failure conditions.
+
+rules:
+  - id: sensitive_data_in_logs
+    severity: critical
+    detect: sensitive data leakage into logs
+    examples:
+      - |
+        log(password)
+        log(authToken)
+        logger.info('User login', { password })
+
+  - id: missing_error_logging
+    severity: high
+    detect: errors caught but not logged
+    examples:
+      - |
+        catch error:
+            return failed
+
+  - id: silent_failures
+    severity: high
+    detect: silent failure paths where errors are swallowed with no logging
+    examples:
+      - |
+        catch error:
+            pass
+
+  - id: missing_tracing_context
+    severity: high
+    detect: cross-service calls missing tracing or correlation context
+    examples:
+      - |
+        serviceA -> serviceB with no correlation ID
+
+  - id: useless_logs
+    severity: medium
+    detect: useless or non-actionable log statements
+    examples:
+      - |
+        log('here')
+        log('done')
+
+  - id: missing_operational_metrics
+    severity: medium
+    detect: long-running or resource-intensive operations missing metrics
+    examples:
+      - |
+        processLargeJob() with no timing or success/failure metric
+
+  - id: excessive_logging_noise
+    severity: low
+    detect: excessive logging that creates noise and degrades log signal
+    examples:
+      - |
+        log('loop iteration ' + i)

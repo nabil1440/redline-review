@@ -1,0 +1,55 @@
+category: architecture_design
+severity_context: >
+  Prioritize architectural patterns that increase coupling, centralize instability,
+  or create long-term maintenance bottlenecks. Optimize for maintainability,
+  scalability, and low coupling.
+
+rules:
+  - id: god_class
+    severity: high
+    detect: God classes, services, or components with too many responsibilities
+    examples:
+      - |
+        UserManager handles auth, billing, notifications, and reporting
+
+  - id: responsibility_leakage
+    severity: high
+    detect: responsibility leakage between layers or modules
+    examples:
+      - |
+        Controller directly queries the database
+
+  - id: separation_of_concerns
+    severity: medium
+    detect: violations of separation of concerns
+    examples:
+      - |
+        Business logic inside a route handler
+
+  - id: low_cohesion
+    severity: medium
+    detect: modules or classes with low cohesion
+    examples:
+      - |
+        Utility class mixing string helpers, date parsing, and HTTP calls
+
+  - id: unnecessary_abstractions
+    severity: medium
+    detect: unnecessary or premature abstractions that add complexity without value
+    examples:
+      - |
+        AbstractBaseServiceFactoryInterface
+
+  - id: framework_convention_deviation
+    severity: medium
+    detect: deviations from established framework conventions without justification
+    examples:
+      - |
+        Custom routing that bypasses framework middleware
+
+  - id: unclear_architectural_boundaries
+    severity: high
+    detect: unclear or violated architectural boundaries between layers or domains
+    examples:
+      - |
+        Domain model importing from infrastructure layer

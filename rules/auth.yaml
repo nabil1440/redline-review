@@ -1,0 +1,57 @@
+category: authentication_authorization
+severity_context: >
+  Prioritize vulnerabilities that can enable unauthorized access, privilege escalation,
+  or exposure of sensitive data. Review all sensitive actions assuming hostile access
+  patterns and privilege escalation attempts.
+
+rules:
+  - id: missing_authentication_checks
+    severity: critical
+    detect: missing authentication checks on sensitive operations
+    examples:
+      - |
+        updateUserProfile(userId)
+
+  - id: missing_authorization_checks
+    severity: critical
+    detect: missing authorization checks on sensitive operations
+    examples:
+      - |
+        adminDeletePost(postId)
+
+  - id: role_permission_bypass
+    severity: critical
+    detect: role or permission bypass opportunities through insufficient guard logic
+    examples:
+      - |
+        if isLoggedIn:
+            allowDelete()
+
+  - id: idor_patterns
+    severity: critical
+    detect: insecure direct object reference patterns where ownership is not validated
+    examples:
+      - |
+        GET /invoice/123
+
+  - id: hardcoded_roles_permissions
+    severity: high
+    detect: hardcoded roles or permission strings
+    examples:
+      - |
+        if role == 'admin'
+
+  - id: inconsistent_permission_enforcement
+    severity: high
+    detect: inconsistent permission enforcement across API routes and background jobs
+    examples:
+      - |
+        API route protected
+        background job unprotected
+
+  - id: missing_ownership_validation
+    severity: critical
+    detect: sensitive operations missing ownership or tenancy validation
+    examples:
+      - |
+        updateOrder(orderId)

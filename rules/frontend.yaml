@@ -1,0 +1,46 @@
+category: frontend_heuristics
+severity_context: >
+  Frontend complexity compounds fast. Keep state and rendering flows isolated.
+
+rules:
+  - id: god_component
+    severity: high
+    detect: God frontend components handling too many concerns in one place
+    examples:
+      - |
+        UserDashboard manages auth state, data fetching, form handling, and routing
+
+  - id: duplicated_state
+    severity: medium
+    detect: duplicated state across multiple components that should be shared or derived
+    examples:
+      - |
+        const [user, setUser] = useState() in three sibling components
+
+  - id: unnecessary_derived_state
+    severity: medium
+    detect: unnecessary derived state stored in useState instead of computed inline
+    examples:
+      - |
+        const [fullName, setFullName] = useState(firstName + ' ' + lastName)
+
+  - id: excessive_prop_drilling
+    severity: medium
+    detect: excessive prop drilling through multiple component layers
+    examples:
+      - |
+        <A user={user}><B user={user}><C user={user} /></B></A>
+
+  - id: unnecessary_third_party_tooling
+    severity: medium
+    detect: unnecessary third-party library usage where a native or framework solution exists
+    examples:
+      - |
+        Using axios for a request when Inertia client handles it natively
+
+  - id: axios_instead_of_inertia
+    severity: medium
+    detect: axios usage where Inertia client is more appropriate
+    examples:
+      - |
+        axios.post('/users') instead of router.post('/users')

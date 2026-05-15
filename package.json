@@ -1,0 +1,37 @@
+{
+  "name": "redline-review",
+  "version": "0.1.0",
+  "description": "Adaptive AI code review skill for any frontier agent — context-aware, rule-driven, diff-native",
+  "keywords": ["code-review", "ai", "claude", "opencode", "copilot", "codex", "llm", "developer-tools"],
+  "license": "MIT",
+  "bin": {
+    "redline-review": "./bin/redline-review"
+  },
+  "files": [
+    "bin",
+    "dist",
+    "rules",
+    "prompts",
+    "schemas",
+    "adapters",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node src/redline-review.ts",
+    "prepare": "npm run build"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^22.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
