@@ -11,7 +11,7 @@ Adaptive AI code review skill for any frontier agent — context-aware, rule-dri
 ### Step 1 — Clone the repo
 
 ```bash
-git clone https://github.com/mousumaisa/redline-review
+git clone https://github.com/nabil1440/redline-review
 cd redline-review
 ```
 
@@ -72,6 +72,7 @@ Open any project in Claude Code and type:
 ```
 
 Claude Code will:
+
 1. Run `redline-review` as a shell command
 2. Receive the assembled review prompt (rules + your git diff)
 3. Perform the code review inline using its own model
@@ -103,17 +104,17 @@ redline-review --type auth
 redline-review --type auth,backend,performance
 ```
 
-| Value | Rule categories loaded |
-|---|---|
-| `auth` | auth, correctness |
-| `security` | auth, correctness, risk-patterns |
-| `performance` | db-performance, system-performance, algorithmic-performance |
-| `backend` | correctness, concurrency, observability |
-| `frontend` | frontend, simplicity |
-| `architecture` | architecture, maintainability |
-| `concurrency` | concurrency, correctness |
-| `observability` | observability, correctness |
-| `risk` | risk-patterns, architecture |
+| Value           | Rule categories loaded                                      |
+| --------------- | ----------------------------------------------------------- |
+| `auth`          | auth, correctness                                           |
+| `security`      | auth, correctness, risk-patterns                            |
+| `performance`   | db-performance, system-performance, algorithmic-performance |
+| `backend`       | correctness, concurrency, observability                     |
+| `frontend`      | frontend, simplicity                                        |
+| `architecture`  | architecture, maintainability                               |
+| `concurrency`   | concurrency, correctness                                    |
+| `observability` | observability, correctness                                  |
+| `risk`          | risk-patterns, architecture                                 |
 
 ### `--stack` — focus by technology
 
@@ -122,19 +123,19 @@ redline-review --stack laravel
 redline-review --stack go --type backend
 ```
 
-| Stack | Focus areas | Why |
-|---|---|---|
-| `laravel` | architecture, db-performance | ORM-heavy, layered architecture |
-| `inertia` | frontend, architecture | SSR frontend patterns |
-| `react` | frontend | Component & state patterns |
-| `vue` | frontend | Component & state patterns |
-| `svelte` | frontend | Component & state patterns |
-| `node` | concurrency, system-performance | Async I/O, event loop |
-| `django` | architecture, db-performance | ORM, layered architecture |
-| `rails` | architecture, db-performance | ORM, layered architecture |
-| `go` | concurrency, system-performance, correctness, observability | Goroutines, error handling, distributed systems |
-| `csharp` / `dotnet` | architecture, correctness, concurrency, system-performance | DDD/clean arch, async/await, nullability |
-| `java` | architecture, concurrency, db-performance, correctness | Spring/JPA, Hibernate N+1, thread safety |
+| Stack               | Focus areas                                                 | Why                                             |
+| ------------------- | ----------------------------------------------------------- | ----------------------------------------------- |
+| `laravel`           | architecture, db-performance                                | ORM-heavy, layered architecture                 |
+| `inertia`           | frontend, architecture                                      | SSR frontend patterns                           |
+| `react`             | frontend                                                    | Component & state patterns                      |
+| `vue`               | frontend                                                    | Component & state patterns                      |
+| `svelte`            | frontend                                                    | Component & state patterns                      |
+| `node`              | concurrency, system-performance                             | Async I/O, event loop                           |
+| `django`            | architecture, db-performance                                | ORM, layered architecture                       |
+| `rails`             | architecture, db-performance                                | ORM, layered architecture                       |
+| `go`                | concurrency, system-performance, correctness, observability | Goroutines, error handling, distributed systems |
+| `csharp` / `dotnet` | architecture, correctness, concurrency, system-performance  | DDD/clean arch, async/await, nullability        |
+| `java`              | architecture, concurrency, db-performance, correctness      | Spring/JPA, Hibernate N+1, thread safety        |
 
 ### `--prompt` — control review depth
 
@@ -144,11 +145,11 @@ redline-review --prompt strict       # CRITICAL and HIGH only + fix suggestions
 redline-review --prompt lightweight  # top 3 issues only
 ```
 
-| Value | Output |
-|---|---|
+| Value            | Output                                            |
+| ---------------- | ------------------------------------------------- |
 | `base` (default) | All issues grouped CRITICAL → HIGH → MEDIUM → LOW |
-| `strict` | CRITICAL and HIGH only, concrete fix per issue |
-| `lightweight` | Top 3 issues, one tight paragraph each |
+| `strict`         | CRITICAL and HIGH only, concrete fix per issue    |
+| `lightweight`    | Top 3 issues, one tight paragraph each            |
 
 ---
 
@@ -200,20 +201,20 @@ Domains (auto-detected): auth.yaml, concurrency.yaml, performance-db.yaml
 
 ## Rule categories
 
-| Category | What it catches |
-|---|---|
-| Auth & Authorization | Missing auth checks, IDOR, privilege bypass, hardcoded roles |
-| Correctness & Safety | Swallowed exceptions, hidden side effects, bad error messages |
-| Architecture & Design | God classes, responsibility leakage, bad abstractions |
-| Frontend Heuristics | God components, duplicated state, prop drilling |
-| Database Performance | N+1 queries, unbounded queries, overfetching |
-| Algorithmic Performance | Nested loops, brute-force, bad complexity |
-| System Performance | Sync waterfalls, serialized I/O, excess roundtrips |
-| Concurrency & Consistency | Race conditions, missing transactions, non-idempotent retries |
-| Observability | Sensitive data in logs, missing error logging, silent failures |
-| Simplicity & Clarity | Redundant checks, nested conditionals, unclear naming |
-| Maintainability | Large functions, implicit mutations, future change friction |
-| Risk Patterns | Dangerous defaults, hidden blast radius, fragile assumptions |
+| Category                  | What it catches                                                |
+| ------------------------- | -------------------------------------------------------------- |
+| Auth & Authorization      | Missing auth checks, IDOR, privilege bypass, hardcoded roles   |
+| Correctness & Safety      | Swallowed exceptions, hidden side effects, bad error messages  |
+| Architecture & Design     | God classes, responsibility leakage, bad abstractions          |
+| Frontend Heuristics       | God components, duplicated state, prop drilling                |
+| Database Performance      | N+1 queries, unbounded queries, overfetching                   |
+| Algorithmic Performance   | Nested loops, brute-force, bad complexity                      |
+| System Performance        | Sync waterfalls, serialized I/O, excess roundtrips             |
+| Concurrency & Consistency | Race conditions, missing transactions, non-idempotent retries  |
+| Observability             | Sensitive data in logs, missing error logging, silent failures |
+| Simplicity & Clarity      | Redundant checks, nested conditionals, unclear naming          |
+| Maintainability           | Large functions, implicit mutations, future change friction    |
+| Risk Patterns             | Dangerous defaults, hidden blast radius, fragile assumptions   |
 
 ---
 
@@ -221,13 +222,13 @@ Domains (auto-detected): auth.yaml, concurrency.yaml, performance-db.yaml
 
 Adapter files for other agents are in `adapters/`:
 
-| Agent | File to use |
-|---|---|
-| Claude Code | `adapters/claude/redline-review.md` → `.claude/commands/redline-review.md` |
-| GitHub Copilot | `adapters/copilot/redline-review.md` → `.github/copilot-instructions.md` |
-| Codex CLI | `adapters/codex/redline-review.md` → `AGENTS.md` |
-| OpenCode | `adapters/opencode/redline-review.md` → `AGENTS.md` |
-| Anti-gravity | `adapters/antigravity/redline-review.md` |
+| Agent          | File to use                                                                |
+| -------------- | -------------------------------------------------------------------------- |
+| Claude Code    | `adapters/claude/redline-review.md` → `.claude/commands/redline-review.md` |
+| GitHub Copilot | `adapters/copilot/redline-review.md` → `.github/copilot-instructions.md`   |
+| Codex CLI      | `adapters/codex/redline-review.md` → `AGENTS.md`                           |
+| OpenCode       | `adapters/opencode/redline-review.md` → `AGENTS.md`                        |
+| Anti-gravity   | `adapters/antigravity/redline-review.md`                                   |
 
 Each adapter follows the same pattern: run `redline-review`, take the output as the review task.
 
