@@ -19,9 +19,9 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mousumaisa/redline-review"
+    "url": "https://github.com/nabil1440/redline-review"
   },
-  "homepage": "https://github.com/mousumaisa/redline-review#readme",
+  "homepage": "https://github.com/nabil1440/redline-review#readme",
   "bin": {
     "redline-review": "./bin/redline-review"
   },
