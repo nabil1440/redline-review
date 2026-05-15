@@ -8,36 +8,19 @@ Adaptive AI code review skill for any frontier agent — context-aware, rule-dri
 
 ## Getting started
 
-### Step 1 — Clone the repo
+### Step 1 — Install
 
 ```bash
-git clone https://github.com/nabil1440/redline-review
-cd redline-review
+npm install -g redline-review
 ```
 
-### Step 2 — Install dependencies and build
-
-```bash
-npm install
-```
-
-The build runs automatically as part of install (`prepare` script). You should see `tsc` compile without errors.
-
-### Step 3 — Install globally
-
-```bash
-npm link
-```
-
-This makes `redline-review` available as a global command from any directory on your machine.
-
-### Step 4 — Verify it works
+### Step 2 — Verify it works
 
 ```bash
 which redline-review
 # → /path/to/node/bin/redline-review
 
-redline-review --help 2>&1 || redline-review | head -5
+redline-review | head -5
 ```
 
 ---
@@ -50,7 +33,7 @@ There are two ways to install the command — global (recommended) or per-projec
 
 ```bash
 mkdir -p ~/.claude/commands
-cp /path/to/redline-review/adapters/claude/redline-review.md ~/.claude/commands/redline-review.md
+cp $(npm root -g)/redline-review/adapters/claude/redline-review.md ~/.claude/commands/redline-review.md
 ```
 
 That's it. Open any project in Claude Code and `/redline-review` will be available immediately — no per-project setup needed.
@@ -60,7 +43,7 @@ That's it. Open any project in Claude Code and `/redline-review` will be availab
 ```bash
 cd /your/project
 mkdir -p .claude/commands
-cp /path/to/redline-review/adapters/claude/redline-review.md .claude/commands/redline-review.md
+cp $(npm root -g)/redline-review/adapters/claude/redline-review.md .claude/commands/redline-review.md
 ```
 
 ### Step 6 — Use it in Claude Code
@@ -222,13 +205,13 @@ Domains (auto-detected): auth.yaml, concurrency.yaml, performance-db.yaml
 
 Adapter files for other agents are in `adapters/`:
 
-| Agent          | File to use                                                                |
-| -------------- | -------------------------------------------------------------------------- |
-| Claude Code    | `adapters/claude/redline-review.md` → `.claude/commands/redline-review.md` |
-| GitHub Copilot | `adapters/copilot/redline-review.md` → `.github/copilot-instructions.md`   |
-| Codex CLI      | `adapters/codex/redline-review.md` → `AGENTS.md`                           |
-| OpenCode       | `adapters/opencode/redline-review.md` → `AGENTS.md`                        |
-| Anti-gravity   | `adapters/antigravity/redline-review.md`                                   |
+| Agent          | Command                                                                                                                          |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Claude Code    | `cp $(npm root -g)/redline-review/adapters/claude/redline-review.md ~/.claude/commands/redline-review.md`                        |
+| GitHub Copilot | `cp $(npm root -g)/redline-review/adapters/copilot/redline-review.md .github/copilot-instructions.md`                           |
+| Codex CLI      | `cp $(npm root -g)/redline-review/adapters/codex/redline-review.md AGENTS.md`                                                   |
+| OpenCode       | `cp $(npm root -g)/redline-review/adapters/opencode/redline-review.md AGENTS.md`                                                |
+| Anti-gravity   | `cp $(npm root -g)/redline-review/adapters/antigravity/redline-review.md <your-config-path>`                                    |
 
 Each adapter follows the same pattern: run `redline-review`, take the output as the review task.
 

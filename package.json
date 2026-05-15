@@ -1,6 +1,6 @@
 {
   "name": "redline-review",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Adaptive AI code review skill for any frontier agent — context-aware, rule-driven, diff-native",
   "keywords": [
     "code-review",
@@ -19,11 +19,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/nabil1440/redline-review"
+    "url": "git+https://github.com/nabil1440/redline-review.git"
   },
   "homepage": "https://github.com/nabil1440/redline-review#readme",
   "bin": {
-    "redline-review": "./bin/redline-review"
+    "redline-review": "bin/redline-review"
   },
   "files": [
     "bin",
