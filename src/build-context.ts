@@ -24,6 +24,10 @@ const STACK_MAP: Record<string, string[]> = {
   node:    ['concurrency.yaml', 'performance-system.yaml'],
   django:  ['architecture.yaml', 'performance-db.yaml'],
   rails:   ['architecture.yaml', 'performance-db.yaml'],
+  go:      ['concurrency.yaml', 'performance-system.yaml', 'correctness.yaml', 'observability.yaml'],
+  csharp:  ['architecture.yaml', 'correctness.yaml', 'concurrency.yaml', 'performance-system.yaml'],
+  dotnet:  ['architecture.yaml', 'correctness.yaml', 'concurrency.yaml', 'performance-system.yaml'],
+  java:    ['architecture.yaml', 'concurrency.yaml', 'performance-db.yaml', 'correctness.yaml'],
 };
 
 export function buildReviewContext(context: ReviewContext): string[] {
