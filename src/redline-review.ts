@@ -68,6 +68,10 @@ function buildPrompt(rulesText: string, diff: string, promptTemplate: string): s
 }
 
 function main(): void {
+  process.stdout.on('error', (err: NodeJS.ErrnoException) => {
+    if (err.code === 'EPIPE') process.exit(0);
+  });
+
   const rulesDir = path.join(__dirname, '..', 'rules');
   const promptPath = path.join(__dirname, '..', 'prompts', 'base-reviewer.md');
 
