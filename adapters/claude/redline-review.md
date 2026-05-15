@@ -2,19 +2,22 @@
 
 Run `redline-review` (or `npx redline-review` if not globally installed) in the current project root.
 
-The tool will:
-1. Detect the git diff automatically
-2. Load the appropriate review rules
-3. Return a structured code review grouped by severity
+The CLI will assemble a focused code review prompt from the current git diff and your installed rule set, then print it to stdout.
 
-Present the output as-is — it is already formatted for readability.
+**Take that output and use it as your task.** Perform the code review inline based on the prompt content.
 
-## Agent-mode (no API key needed)
+No API key required. No external calls are made by the CLI.
 
-If you want to run the review yourself rather than delegating to the CLI's LLM call, use:
+## Example flow
 
-```bash
-redline-review --output prompt
+```
+User: /redline-review
+Agent: runs `redline-review`, receives assembled prompt, performs review
 ```
 
-This returns the fully assembled review prompt. Pass it as your user message to perform the review inline.
+## Flags (Phase 2+)
+
+```bash
+redline-review --stack laravel,inertia --type auth,performance
+redline-review --prompt strict
+```
