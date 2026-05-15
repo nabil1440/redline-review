@@ -1,6 +1,6 @@
 {
   "name": "redline-review",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Adaptive AI code review skill for any frontier agent — context-aware, rule-driven, diff-native",
   "keywords": [
     "code-review",
@@ -10,9 +10,18 @@
     "copilot",
     "codex",
     "llm",
-    "developer-tools"
+    "developer-tools",
+    "git",
+    "prompt",
+    "review",
+    "static-analysis"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mousumaisa/redline-review"
+  },
+  "homepage": "https://github.com/mousumaisa/redline-review#readme",
   "bin": {
     "redline-review": "./bin/redline-review"
   },
