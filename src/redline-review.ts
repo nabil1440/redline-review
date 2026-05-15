@@ -24,6 +24,7 @@ interface ParsedArgs {
   stack?: string[];
   reviewType?: string[];
   promptVariant: string;
+  base?: string;
 }
 
 function parseArgs(): ParsedArgs {
@@ -37,25 +38,51 @@ function parseArgs(): ParsedArgs {
   const stack = get('--stack')?.split(',').filter(Boolean);
   const reviewType = get('--type')?.split(',').filter(Boolean);
   const promptVariant = get('--prompt') ?? 'base';
+  const base = get('--base');
 
-  return { stack, reviewType, promptVariant };
+  return { stack, reviewType, promptVariant, base };
 }
 
-function getGitDiff(): string {
-  const strategies = [
-    'git diff main...HEAD',
-    'git diff master...HEAD',
-    'git diff HEAD~1',
-    'git diff --cached',
-  ];
+function detectBaseBranch(): string | null {
+  try {
+    return execSync('git rev-parse --abbrev-ref @{upstream}',
+      { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
+  } catch { /* no upstream configured */ }
 
-  for (const cmd of strategies) {
+  try {
+    const ref = execSync('git symbolic-ref refs/remotes/origin/HEAD',
+      { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
+    return ref.replace('refs/remotes/', '');
+  } catch { /* no remote HEAD ref */ }
+
+  return null;
+}
+
+function getGitDiff(baseOverride?: string): string {
+  const baseCandidates: string[] = baseOverride
+    ? [baseOverride]
+    : ([detectBaseBranch(), 'main', 'master', 'develop', 'trunk'].filter(Boolean) as string[]);
+
+  for (const base of baseCandidates) {
     try {
-      const result = execSync(cmd, { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
-      if (result.length > 0) return result;
-    } catch {
-      continue;
-    }
+      const result = execSync(`git diff ${base}...HEAD`,
+        { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
+      if (result.length > 0) {
+        process.stderr.write(`Base branch: ${base}\n`);
+        return result;
+      }
+    } catch { continue; }
+  }
+
+  for (const cmd of ['git diff HEAD~1', 'git diff --cached']) {
+    try {
+      const result = execSync(cmd,
+        { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
+      if (result.length > 0) {
+        process.stderr.write(`Warning: could not find a base branch; falling back to \`${cmd}\`\n`);
+        return result;
+      }
+    } catch { continue; }
   }
 
   process.stderr.write('No diff found. Make sure you are in a git repository with changes.\n');
@@ -108,11 +135,11 @@ function main(): void {
     if (err.code === 'EPIPE') process.exit(0);
   });
 
-  const { stack, reviewType, promptVariant } = parseArgs();
+  const { stack, reviewType, promptVariant, base } = parseArgs();
   const rulesDir = path.join(__dirname, '..', 'rules');
   const promptsDir = path.join(__dirname, '..', 'prompts');
 
-  const diff = getGitDiff();
+  const diff = getGitDiff(base);
 
   let selectedFiles: string[] | undefined;
   let contextSource: string;

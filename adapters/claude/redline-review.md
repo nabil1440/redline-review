@@ -15,8 +15,12 @@ npm install -g redline-review
 ## Usage
 
 ```bash
-# All rules (default)
+# All rules (default — base branch auto-detected)
 redline-review
+
+# Pin the base branch explicitly (use when auto-detection picks the wrong base)
+redline-review --base origin/develop
+redline-review --base develop
 
 # Focused by review type
 redline-review --type auth,performance
