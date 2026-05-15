@@ -2,22 +2,36 @@
 
 Run `redline-review` (or `npx redline-review` if not globally installed) in the current project root.
 
-The CLI will assemble a focused code review prompt from the current git diff and your installed rule set, then print it to stdout.
+The CLI assembles a focused code review prompt from the git diff and the installed rule set, then prints it to stdout.
 
-**Take that output and use it as your task.** Perform the code review inline based on the prompt content.
+**Take that output and use it as your task.** Perform the code review based on the prompt content.
 
-No API key required. No external calls are made by the CLI.
-
-## Example flow
-
-```
-User: /redline-review
-Agent: runs `redline-review`, receives assembled prompt, performs review
-```
-
-## Flags (Phase 2+)
+## Install
 
 ```bash
-redline-review --stack laravel,inertia --type auth,performance
-redline-review --prompt strict
+npm install -g redline-review
 ```
+
+## Usage
+
+```bash
+# All rules (default)
+redline-review
+
+# Focused by review type
+redline-review --type auth,performance
+
+# Focused by stack
+redline-review --stack laravel,inertia --type backend,auth
+
+# Strict mode (CRITICAL/HIGH only)
+redline-review --prompt strict
+
+# Quick scan (top 3 issues)
+redline-review --prompt lightweight
+```
+
+## How to use as a Claude Code skill
+
+Place this file at `.claude/commands/redline-review.md` in your project.
+Then invoke it with `/redline-review` in Claude Code.
