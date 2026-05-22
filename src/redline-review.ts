@@ -20,15 +20,21 @@ interface RuleFile {
   rules: Rule[];
 }
 
-interface ParsedArgs {
+export interface ReviewInput {
+  mode: 'branch' | 'range' | 'walk' | 'repo';
+  reviewContent: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface ParsedArgs {
   stack?: string[];
   reviewType?: string[];
   promptVariant: string;
   base?: string;
 }
 
-function parseArgs(): ParsedArgs {
-  const args = process.argv.slice(2);
+export function parseArgs(argv: string[] = process.argv): ParsedArgs {
+  const args = argv.slice(2);
 
   const get = (flag: string): string | undefined => {
     const idx = args.indexOf(flag);
@@ -58,20 +64,27 @@ function detectBaseBranch(): string | null {
   return null;
 }
 
-function getGitDiff(baseOverride?: string): string {
+export function getGitDiff(opts: { from: string; to: string; threeDot?: boolean }): string {
+  const separator = opts.threeDot !== false ? '...' : '..';
+  const cmd = `git diff ${opts.from}${separator}${opts.to}`;
+  try {
+    return execSync(cmd, { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
+  } catch {
+    return '';
+  }
+}
+
+function getBranchDiff(baseOverride?: string): { diff: string; base: string } {
   const baseCandidates: string[] = baseOverride
     ? [baseOverride]
     : ([detectBaseBranch(), 'main', 'master', 'develop', 'trunk'].filter(Boolean) as string[]);
 
   for (const base of baseCandidates) {
-    try {
-      const result = execSync(`git diff ${base}...HEAD`,
-        { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
-      if (result.length > 0) {
-        process.stderr.write(`Base branch: ${base}\n`);
-        return result;
-      }
-    } catch { continue; }
+    const result = getGitDiff({ from: base, to: 'HEAD', threeDot: true });
+    if (result.length > 0) {
+      process.stderr.write(`Base branch: ${base}\n`);
+      return { diff: result, base };
+    }
   }
 
   for (const cmd of ['git diff HEAD~1', 'git diff --cached']) {
@@ -80,7 +93,7 @@ function getGitDiff(baseOverride?: string): string {
         { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
       if (result.length > 0) {
         process.stderr.write(`Warning: could not find a base branch; falling back to \`${cmd}\`\n`);
-        return result;
+        return { diff: result, base: cmd };
       }
     } catch { continue; }
   }
@@ -89,7 +102,7 @@ function getGitDiff(baseOverride?: string): string {
   process.exit(1);
 }
 
-function loadRules(rulesDir: string, selectedFiles?: string[]): RuleFile[] {
+export function loadRules(rulesDir: string, selectedFiles?: string[]): RuleFile[] {
   const files = fs.readdirSync(rulesDir)
     .filter(f => f.endsWith('.yaml'))
     .filter(f => !selectedFiles || selectedFiles.includes(f));
@@ -100,7 +113,7 @@ function loadRules(rulesDir: string, selectedFiles?: string[]): RuleFile[] {
   });
 }
 
-function formatRulesForPrompt(ruleFiles: RuleFile[]): string {
+export function formatRulesForPrompt(ruleFiles: RuleFile[]): string {
   return ruleFiles.map(rf => {
     const header = `### ${rf.category.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}`;
     const context = rf.severity_context ? `\n*${rf.severity_context.trim()}*\n` : '';
@@ -114,13 +127,48 @@ function formatRulesForPrompt(ruleFiles: RuleFile[]): string {
   }).join('\n\n');
 }
 
-function buildPrompt(rulesText: string, diff: string, promptTemplate: string): string {
-  return promptTemplate
-    .replace('{{selectedRules}}', rulesText)
-    .replace('{{gitDiff}}', diff);
+export function renderContext(mode: ReviewInput['mode'], metadata?: Record<string, unknown>): string {
+  switch (mode) {
+    case 'branch': {
+      const base = metadata?.base as string | undefined;
+      return base ? `\n## Review Mode\n\nBranch diff against \`${base}\`.\n` : '';
+    }
+    case 'range': {
+      const from = metadata?.from as string;
+      const to = metadata?.to as string;
+      return `\n## Review Mode\n\nRange review: \`${from}\` → \`${to}\`.\n`;
+    }
+    case 'walk': {
+      const step = metadata?.step as number;
+      const total = metadata?.total as number;
+      const msg = metadata?.commitMessage as string;
+      const pairFrom = metadata?.pairFrom as string;
+      const pairTo = metadata?.pairTo as string;
+      return `\n## Review Mode\n\nCommit walk — step ${step + 1} of ${total}.\nCommit: \`${pairFrom}...${pairTo}\`\nMessage: ${msg}\n`;
+    }
+    case 'repo': {
+      const fileCount = metadata?.fileCount as number;
+      const langs = metadata?.primaryLanguages as string[] | undefined;
+      const truncated = metadata?.truncated as boolean;
+      let ctx = `\n## Review Mode\n\nFull repository review. ${fileCount} tracked files.`;
+      if (langs?.length) ctx += ` Primary languages: ${langs.join(', ')}.`;
+      if (truncated) ctx += ' (file tree truncated)';
+      return ctx + '\n';
+    }
+    default:
+      return '';
+  }
 }
 
-function resolvePromptPath(variant: string, promptsDir: string): string {
+export function buildPrompt(template: string, input: ReviewInput, selectedRules: string): string {
+  const contextBlock = renderContext(input.mode, input.metadata);
+  return template
+    .replace('{{reviewContext}}', contextBlock)
+    .replace('{{selectedRules}}', selectedRules)
+    .replace('{{reviewData}}', input.reviewContent);
+}
+
+export function resolvePromptPath(variant: string, promptsDir: string): string {
   const map: Record<string, string> = {
     base:        'base-reviewer.md',
     strict:      'strict-reviewer.md',
@@ -130,43 +178,68 @@ function resolvePromptPath(variant: string, promptsDir: string): string {
   return path.join(promptsDir, file);
 }
 
-function main(): void {
-  process.stdout.on('error', (err: NodeJS.ErrnoException) => {
-    if (err.code === 'EPIPE') process.exit(0);
-  });
-
-  const { stack, reviewType, promptVariant, base } = parseArgs();
+export function runPipeline(input: ReviewInput, args: ParsedArgs): void {
   const rulesDir = path.join(__dirname, '..', 'rules');
   const promptsDir = path.join(__dirname, '..', 'prompts');
-
-  const diff = getGitDiff(base);
 
   let selectedFiles: string[] | undefined;
   let contextSource: string;
 
-  if (reviewType || stack) {
-    selectedFiles = buildReviewContext({ stack, reviewType });
+  if (args.reviewType || args.stack) {
+    selectedFiles = buildReviewContext({ stack: args.stack, reviewType: args.reviewType });
     if (selectedFiles.length === 0) {
       process.stderr.write('Warning: no matching rules for the given --stack/--type. Falling back to all rules.\n');
       selectedFiles = undefined;
     }
     contextSource = 'explicit';
   } else {
-    selectedFiles = detectRelevantDomains(diff);
+    selectedFiles = detectRelevantDomains(input.reviewContent);
     contextSource = 'auto-detected';
   }
 
   const ruleFiles = loadRules(rulesDir, selectedFiles?.length ? selectedFiles : undefined);
-  const promptPath = resolvePromptPath(promptVariant, promptsDir);
+  const promptPath = resolvePromptPath(args.promptVariant, promptsDir);
   const promptTemplate = fs.readFileSync(promptPath, 'utf8');
   const rulesText = formatRulesForPrompt(ruleFiles);
-  const finalPrompt = buildPrompt(rulesText, diff, promptTemplate);
+  const finalPrompt = buildPrompt(promptTemplate, input, rulesText);
 
   if (selectedFiles?.length) {
     process.stderr.write(`Domains (${contextSource}): ${selectedFiles.join(', ')}\n`);
   }
 
   process.stdout.write(finalPrompt + '\n');
+}
+
+function runDefault(args: ParsedArgs): void {
+  const { diff, base } = getBranchDiff(args.base);
+  const input: ReviewInput = {
+    mode: 'branch',
+    reviewContent: diff,
+    metadata: { base },
+  };
+  runPipeline(input, args);
+}
+
+function main(): void {
+  process.stdout.on('error', (err: NodeJS.ErrnoException) => {
+    if (err.code === 'EPIPE') process.exit(0);
+  });
+
+  const sub = process.argv[2];
+
+  switch (sub) {
+    case 'range':
+    case 'walk':
+    case 'repo':
+      process.stderr.write(`"${sub}" is not yet implemented.\n`);
+      process.exit(1);
+      break;
+    default: {
+      const args = parseArgs();
+      runDefault(args);
+      break;
+    }
+  }
 }
 
 main();
