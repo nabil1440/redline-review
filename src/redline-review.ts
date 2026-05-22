@@ -6,6 +6,7 @@ import * as yaml from 'js-yaml';
 import { execSync } from 'child_process';
 import { buildReviewContext } from './build-context';
 import { detectRelevantDomains } from './detect-domains';
+import { collectRangeInput } from './range';
 
 interface Rule {
   id: string;
@@ -227,18 +228,22 @@ function main(): void {
 
   const sub = process.argv[2];
 
+  const args = parseArgs();
+
   switch (sub) {
-    case 'range':
+    case 'range': {
+      const input = collectRangeInput(process.argv.slice(3));
+      runPipeline(input, args);
+      break;
+    }
     case 'walk':
     case 'repo':
       process.stderr.write(`"${sub}" is not yet implemented.\n`);
       process.exit(1);
       break;
-    default: {
-      const args = parseArgs();
+    default:
       runDefault(args);
       break;
-    }
   }
 }
 
