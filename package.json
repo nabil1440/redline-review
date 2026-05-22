@@ -1,6 +1,6 @@
 {
   "name": "redline-review",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Adaptive AI code review skill for any frontier agent — context-aware, rule-driven, diff-native",
   "keywords": [
     "code-review",
