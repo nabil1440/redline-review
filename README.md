@@ -46,7 +46,7 @@ mkdir -p .claude/commands
 cp $(npm root -g)/redline-review/adapters/claude/redline-review.md .claude/commands/redline-review.md
 ```
 
-### Step 6 — Use it in Claude Code
+### Use it in Claude Code
 
 Open any project in Claude Code and type:
 
@@ -69,16 +69,99 @@ You can pass flags directly:
 
 ---
 
-## How it works
+## Review modes
 
-1. Detects your git diff automatically (`git diff main...HEAD`, falls back through `master...HEAD` → `HEAD~1` → `--cached`)
-2. **Auto-detects relevant rule categories** from the diff content (or uses your `--stack`/`--type` flags)
-3. Prints the assembled review prompt to stdout
-4. Your agent reads that prompt and performs the review — no external calls made by the CLI
+### Default — branch diff (PR-style)
+
+```bash
+redline-review
+```
+
+Diffs the current branch against the detected base branch and assembles a review prompt. This is the original behavior — no subcommand needed.
+
+### Range — review between two commits
+
+```bash
+redline-review range --from <commit-ish> --to <commit-ish>
+```
+
+One-shot review of everything that changed between two refs. `--to` defaults to `HEAD` if omitted.
+
+```bash
+# Review changes between two tags
+redline-review range --from v1.0.0 --to v1.1.0
+
+# Review the last 5 commits
+redline-review range --from HEAD~5 --to HEAD
+
+# Strict mode
+redline-review range --from main --to HEAD --prompt strict
+```
+
+### Walk — commit-by-commit review
+
+```bash
+redline-review walk --start [--from <ref>] [--to <ref>] [--interval N] [--direction backwards|forwards]
+redline-review walk --next
+redline-review walk --status
+redline-review walk --reset
+```
+
+Steps through commits one at a time (or in batches), emitting a review prompt for each step. State is persisted in `.git/redline-walk.json`.
+
+```bash
+# Start walking backwards from HEAD to main (default)
+redline-review walk --start
+
+# Walk in batches of 2 commits
+redline-review walk --start --interval 2
+
+# Walk forwards from a specific point
+redline-review walk --start --from v1.0.0 --direction forwards
+
+# Get the next review prompt
+redline-review walk --next
+
+# Check progress
+redline-review walk --status
+
+# Clear walk state
+redline-review walk --reset
+```
+
+The interactive "review → ask → continue" loop lives in your agent (see adapter docs), not in the CLI. The CLI stays stateless per invocation — it reads/writes a small state file but each call is a single deterministic function.
+
+Flags passed at `--start` time (`--stack`, `--type`, `--prompt`) are captured into state and reused for every `--next`.
+
+### Repo — full repository review
+
+```bash
+redline-review repo [--max-tree-depth N] [--stack ...] [--type ...] [--prompt ...]
+```
+
+Emits a review prompt that instructs your agent to systematically explore the entire repository. The prompt includes:
+
+- An annotated file tree with navigation hints (`[entry-point]`, `[config]`, `[migration]`, `[orchestration]`, `[largest]`)
+- Inlined orientation files (package.json, go.mod, README, CI workflows, etc.)
+- Architecture review dimensions (module boundaries, hidden coupling, consistency, abstraction quality, reliability hazards, architectural drift)
+- Rule-based focus areas auto-detected from file extensions
+
+```bash
+# Review this repo
+redline-review repo
+
+# Limit tree depth for large repos
+redline-review repo --max-tree-depth 3
+
+# Override with explicit stack
+redline-review repo --stack go --type architecture,concurrency
+```
 
 ---
 
 ## Flags
+
+All flags work with all modes (default, range, walk, repo).
 
 ### `--type` — focus by concern
 
@@ -123,16 +206,27 @@ redline-review --stack go --type backend
 ### `--prompt` — control review depth
 
 ```bash
-redline-review --prompt base         # default
+redline-review --prompt base         # default for diff-based modes
 redline-review --prompt strict       # CRITICAL and HIGH only + fix suggestions
 redline-review --prompt lightweight  # top 3 issues only
 ```
 
-| Value            | Output                                            |
-| ---------------- | ------------------------------------------------- |
+| Value            | Output                                             |
+| ---------------- | -------------------------------------------------- |
 | `base` (default) | All issues grouped CRITICAL → HIGH → MEDIUM → LOW |
-| `strict`         | CRITICAL and HIGH only, concrete fix per issue    |
-| `lightweight`    | Top 3 issues, one tight paragraph each            |
+| `strict`         | CRITICAL and HIGH only, concrete fix per issue     |
+| `lightweight`    | Top 3 issues, one tight paragraph each             |
+
+Repo mode defaults to its own `repo-reviewer` template (agent-driven exploration). Pass `--prompt strict` or `--prompt lightweight` to override.
+
+### `--base` — override base branch
+
+```bash
+redline-review --base origin/develop
+redline-review --base main
+```
+
+Only applies to the default (branch diff) mode. Range and walk use `--from`/`--to` instead.
 
 ---
 
@@ -154,6 +248,17 @@ redline-review --stack java --prompt lightweight
 # Security review, any stack
 redline-review --type security
 
+# Review a release range
+redline-review range --from v1.2.0 --to v1.3.0
+
+# Walk through a feature branch commit by commit
+redline-review walk --start --prompt strict
+redline-review walk --next
+redline-review walk --next
+
+# Full repo audit
+redline-review repo
+
 # Pipe to clipboard (macOS) — paste into any agent
 redline-review | pbcopy
 
@@ -173,6 +278,8 @@ When no `--type` or `--stack` flags are given, `redline-review` scans the diff f
 - Diff contains `useState`, `useEffect`, `.tsx` → loads `frontend.yaml`
 
 If nothing is detected, falls back to `correctness + maintainability + risk-patterns`.
+
+For repo mode (no diff), detection is based on file extensions in the repository.
 
 Detected domains are printed to stderr so they don't pollute the prompt:
 
@@ -205,15 +312,22 @@ Domains (auto-detected): auth.yaml, concurrency.yaml, performance-db.yaml
 
 Adapter files for other agents are in `adapters/`:
 
-| Agent          | Command                                                                                                                          |
-| -------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| Claude Code    | `cp $(npm root -g)/redline-review/adapters/claude/redline-review.md ~/.claude/commands/redline-review.md`                        |
-| GitHub Copilot | `cp $(npm root -g)/redline-review/adapters/copilot/redline-review.md .github/copilot-instructions.md`                           |
-| Codex CLI      | `cp $(npm root -g)/redline-review/adapters/codex/redline-review.md AGENTS.md`                                                   |
-| OpenCode       | `cp $(npm root -g)/redline-review/adapters/opencode/redline-review.md AGENTS.md`                                                |
-| Anti-gravity   | `cp $(npm root -g)/redline-review/adapters/antigravity/redline-review.md <your-config-path>`                                    |
+| Agent          | Command                                                                                                   |
+| -------------- | --------------------------------------------------------------------------------------------------------- |
+| Claude Code    | `cp $(npm root -g)/redline-review/adapters/claude/redline-review.md ~/.claude/commands/redline-review.md` |
+| GitHub Copilot | `cp $(npm root -g)/redline-review/adapters/copilot/redline-review.md .github/copilot-instructions.md`    |
+| Codex CLI      | `cp $(npm root -g)/redline-review/adapters/codex/redline-review.md AGENTS.md`                            |
+| OpenCode       | `cp $(npm root -g)/redline-review/adapters/opencode/redline-review.md AGENTS.md`                         |
+| Anti-gravity   | `cp $(npm root -g)/redline-review/adapters/antigravity/redline-review.md <your-config-path>`             |
 
 Each adapter follows the same pattern: run `redline-review`, take the output as the review task.
+
+For the commit walk interactive flow, adapters should:
+
+1. Run `redline-review walk --start` and perform the review
+2. Ask the user: "Continue to the next commit?"
+3. If yes, run `redline-review walk --next` and repeat
+4. When walk is complete (exit 0 with no stdout), inform the user
 
 ---
 
