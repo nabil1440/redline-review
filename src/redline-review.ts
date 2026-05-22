@@ -7,6 +7,7 @@ import { execSync } from 'child_process';
 import { buildReviewContext } from './build-context';
 import { detectRelevantDomains } from './detect-domains';
 import { collectRangeInput } from './range';
+import { runWalkStart, runWalkNext, runWalkStatus, runWalkReset } from './walk';
 
 interface Rule {
   id: string;
@@ -236,7 +237,28 @@ function main(): void {
       runPipeline(input, args);
       break;
     }
-    case 'walk':
+    case 'walk': {
+      const walkArgv = process.argv.slice(3);
+      let input: ReviewInput | null = null;
+
+      if (walkArgv.includes('--start')) {
+        input = runWalkStart(walkArgv);
+      } else if (walkArgv.includes('--next')) {
+        input = runWalkNext();
+      } else if (walkArgv.includes('--status')) {
+        runWalkStatus();
+      } else if (walkArgv.includes('--reset')) {
+        runWalkReset();
+      } else {
+        process.stderr.write('Error: walk requires one of --start, --next, --status, or --reset.\n');
+        process.exit(1);
+      }
+
+      if (input) {
+        runPipeline(input, args);
+      }
+      break;
+    }
     case 'repo':
       process.stderr.write(`"${sub}" is not yet implemented.\n`);
       process.exit(1);
