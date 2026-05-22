@@ -8,6 +8,7 @@ import { buildReviewContext } from './build-context';
 import { detectRelevantDomains } from './detect-domains';
 import { collectRangeInput } from './range';
 import { runWalkStart, runWalkNext, runWalkStatus, runWalkReset } from './walk';
+import { collectRepoInput, getRepoRuleFiles } from './repo';
 
 interface Rule {
   id: string;
@@ -170,24 +171,28 @@ export function buildPrompt(template: string, input: ReviewInput, selectedRules:
     .replace('{{reviewData}}', input.reviewContent);
 }
 
-export function resolvePromptPath(variant: string, promptsDir: string): string {
+export function resolvePromptPath(variant: string, promptsDir: string, mode?: ReviewInput['mode']): string {
   const map: Record<string, string> = {
     base:        'base-reviewer.md',
     strict:      'strict-reviewer.md',
     lightweight: 'lightweight-reviewer.md',
+    repo:        'repo-reviewer.md',
   };
-  const file = map[variant] ?? 'base-reviewer.md';
+  const file = map[variant] ?? (mode === 'repo' ? 'repo-reviewer.md' : 'base-reviewer.md');
   return path.join(promptsDir, file);
 }
 
-export function runPipeline(input: ReviewInput, args: ParsedArgs): void {
+export function runPipeline(input: ReviewInput, args: ParsedArgs, preSelectedFiles?: string[]): void {
   const rulesDir = path.join(__dirname, '..', 'rules');
   const promptsDir = path.join(__dirname, '..', 'prompts');
 
   let selectedFiles: string[] | undefined;
   let contextSource: string;
 
-  if (args.reviewType || args.stack) {
+  if (preSelectedFiles) {
+    selectedFiles = preSelectedFiles;
+    contextSource = 'repo-detected';
+  } else if (args.reviewType || args.stack) {
     selectedFiles = buildReviewContext({ stack: args.stack, reviewType: args.reviewType });
     if (selectedFiles.length === 0) {
       process.stderr.write('Warning: no matching rules for the given --stack/--type. Falling back to all rules.\n');
@@ -200,7 +205,8 @@ export function runPipeline(input: ReviewInput, args: ParsedArgs): void {
   }
 
   const ruleFiles = loadRules(rulesDir, selectedFiles?.length ? selectedFiles : undefined);
-  const promptPath = resolvePromptPath(args.promptVariant, promptsDir);
+  const promptVariant = input.mode === 'repo' && args.promptVariant === 'base' ? 'repo' : args.promptVariant;
+  const promptPath = resolvePromptPath(promptVariant, promptsDir, input.mode);
   const promptTemplate = fs.readFileSync(promptPath, 'utf8');
   const rulesText = formatRulesForPrompt(ruleFiles);
   const finalPrompt = buildPrompt(promptTemplate, input, rulesText);
@@ -259,10 +265,13 @@ function main(): void {
       }
       break;
     }
-    case 'repo':
-      process.stderr.write(`"${sub}" is not yet implemented.\n`);
-      process.exit(1);
+    case 'repo': {
+      const repoArgv = process.argv.slice(3);
+      const repoInput = collectRepoInput(repoArgv);
+      const repoRuleFiles = getRepoRuleFiles(repoArgv);
+      runPipeline(repoInput, args, repoRuleFiles);
       break;
+    }
     default:
       runDefault(args);
       break;
