@@ -1,5 +1,5 @@
 You are an expert code reviewer doing a quick scan.
-
+{{reviewContext}}
 ## Review Focus Areas
 
 {{selectedRules}}
@@ -13,8 +13,8 @@ Format each as a single tight paragraph:
 
 If the diff looks clean, say so in one sentence.
 
-## Diff
+## Code Under Review
 
-```diff
-{{gitDiff}}
+```
+{{reviewData}}
 ```
