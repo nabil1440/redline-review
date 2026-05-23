@@ -228,6 +228,11 @@ function runDefault(args: ParsedArgs): void {
   runPipeline(input, args);
 }
 
+function printVersion(): void {
+  const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8')) as { version: string };
+  process.stdout.write(`redline-review v${pkg.version}\n`);
+}
+
 function printHelp(): void {
   process.stdout.write(`redline-review — adaptive AI code review prompt builder
 
@@ -266,7 +271,7 @@ function main(): void {
   }
 
   if (sub === 'which') {
-    printHelp();
+    printVersion();
     process.exit(0);
   }
 
