@@ -228,12 +228,47 @@ function runDefault(args: ParsedArgs): void {
   runPipeline(input, args);
 }
 
+function printHelp(): void {
+  process.stdout.write(`redline-review — adaptive AI code review prompt builder
+
+Usage:
+  redline-review [flags]                        Branch diff (auto-detect base)
+  redline-review range --from <ref> --to <ref>  Review between two commits or tags
+  redline-review walk --start | --next | --status | --reset
+  redline-review repo                           Full repository audit
+
+Flags:
+  --base <branch>   Override base branch for branch diff
+  --stack <list>    Comma-separated tech stacks  (e.g. react,node)
+  --type  <list>    Comma-separated review types (e.g. auth,performance)
+  --prompt <name>   Prompt variant: base (default), strict, lightweight
+  --help, -h        Show this help message
+
+Examples:
+  redline-review
+  redline-review --base origin/develop --type security
+  redline-review range --from v1.0.0 --to v1.1.0
+  redline-review walk --start
+  redline-review repo --stack go
+`);
+}
+
 function main(): void {
   process.stdout.on('error', (err: NodeJS.ErrnoException) => {
     if (err.code === 'EPIPE') process.exit(0);
   });
 
   const sub = process.argv[2];
+
+  if (sub === '--help' || sub === '-h' || process.argv.includes('--help') || process.argv.includes('-h')) {
+    printHelp();
+    process.exit(0);
+  }
+
+  if (sub === 'which') {
+    printHelp();
+    process.exit(0);
+  }
 
   const args = parseArgs();
 
